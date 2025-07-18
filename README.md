@@ -49,7 +49,7 @@ docker compose up -d jenkins sonarqube nexus grafana prometheus
 ```bash
 docker exec -it nexus bash
 cat /nexus-data/admin.password
-
+```
 Aller sur http://localhost:8081
 
 Se connecter avec :
@@ -60,7 +60,7 @@ Mot de passe : (celui récupéré ci-dessus)
 
 Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
 
-```
+
 ## **4️⃣ Configuration de Jenkins**
 
 - Accéder à [http://localhost:8080](http://localhost:8080)
