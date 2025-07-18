@@ -1,11 +1,11 @@
 pipeline {
     agent any
-    
+
     tools {
         maven 'Maven'
         jdk 'JDK8'
     }
-    
+
     environment {
         SOURCE_CODE_PATH = "${WORKSPACE}/"
         NEXUS_DOCKER_CREDENTIAL_ID = "nexus-docker-credentials"
@@ -14,84 +14,82 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('git') {
             steps {
-                echo "Checking out source code from GitHub..."
                 checkout scm: [
                     $class: 'GitSCM',
-                    branches: [[name: '*/main']], 
+                    branches: [[name: '*/main']],
                     userRemoteConfigs: [[
-                        url: 'https://github.com/chyrazz/pi', 
+                        url: 'https://github.com/chyrazz/pi',
                     ]]
                 ]
-                // Verify checkout
                 sh "pwd && ls -la"
             }
         }
 
-        stage('java versions') {
-                steps {
-                    script {
-                        def javaVersion = sh(script: 'java -version', returnStdout: true).trim()
-                        echo "Java Version: ${javaVersion}"
-
-                        def mavenVersion = sh(script: 'mvn -v', returnStdout: true).trim()
-                        echo "Maven Version: ${mavenVersion}"
-                    }
+        stage('build') {
+            steps {
+                dir(SOURCE_CODE_PATH) {
+                    sh 'mvn clean package -DskipTests'
                 }
             }
-        
-        stage('Build') {
-            steps {
-                    sh 'mvn clean package -DskipTests'
-            }
         }
-        
-        stage('Unit Tests') {
+
+        stage('test') {
             steps {
+                dir(SOURCE_CODE_PATH) {
                     sh 'mvn test'
+                }
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: "/target/surefire-reports/*.xml"
+                    junit allowEmptyResults: true, testResults: "${SOURCE_CODE_PATH}/target/surefire-reports/*.xml"
                 }
             }
         }
-        
-        stage('Code Coverage') {
-    steps {
-        dir(SOURCE_CODE_PATH) {
-            // Run tests with JaCoCo to generate coverage data
-            sh 'mvn test jacoco:report'
+
+        stage('coverage') {
+            steps {
+                dir(SOURCE_CODE_PATH) {
+                    sh 'mvn test jacoco:report'
+                }
+            }
+            post {
+                success {
+                    jacoco(
+                        execPattern: '**/target/jacoco.exec',
+                        classPattern: '**/target/classes',
+                        sourcePattern: '**/src/main/java',
+                        exclusionPattern: '**/test/**'
+                    )
+                }
+            }
         }
-    }
-    post {
-        success {
-            jacoco(
-                execPattern: '**/target/jacoco.exec',
-                classPattern: '**/target/classes',
-                sourcePattern: '**/src/main/java',
-                exclusionPattern: '**/test/**'
-            )
-        }
-    }
-}
-        
-        stage("SonarQube Analysis") {
+
+        stage('sonar') {
             steps {
                 dir(SOURCE_CODE_PATH) {
                     withSonarQubeEnv('SonarQube') {
-                        sh 'mvn sonar:sonar' 
+                        sh 'mvn sonar:sonar'
                     }
                 }
             }
         }
 
-        stage('Deploy to Nexus') {
+        stage('sonar-sast') {
+            steps {
+                dir(SOURCE_CODE_PATH) {
+                    withSonarQubeEnv('SonarQube') {
+                        sh 'mvn verify -Dsonar.analysis.mode=preview -Dsonar.sast.enabled=true'
+                    }
+                }
+            }
+        }
+
+        stage('Nexus Deploy') {
             steps {
                 dir(SOURCE_CODE_PATH) {
                     script {
-                        echo "Deploying artifacts to Nexus from ${SOURCE_CODE_PATH}..."
                         try {
                             sh 'mvn clean deploy -DskipTests --settings ${SOURCE_CODE_PATH}/settings.xml'
                         } catch (Exception e) {
@@ -101,91 +99,63 @@ pipeline {
                 }
             }
         }
-        
-        stage('Build Docker Image') {
+
+        stage('docker build') {
             steps {
                 dir(SOURCE_CODE_PATH) {
                     script {
-                        echo "Building Docker image..."
                         sh 'chmod 666 /var/run/docker.sock'
-                        
-                        // Build the Docker image
-                        def dockerImage = docker.build("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
-                        
-                        // Also tag as latest
+                        docker.build("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
                         sh "docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest"
-                        
-                        echo "Docker image built successfully: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                     }
                 }
             }
         }
 
-        stage('Push to Nexus Docker Registry') {
+        stage('dockerhub') {
             steps {
                 script {
-                    echo "Pushing Docker image to Docker Hub..."
-                    
-                    withCredentials([usernamePassword(credentialsId: "${NEXUS_DOCKER_CREDENTIAL_ID}", 
-                                                    usernameVariable: 'NEXUS_USERNAME', 
-                                                    passwordVariable: 'NEXUS_PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: "${NEXUS_DOCKER_CREDENTIAL_ID}",
+                        usernameVariable: 'NEXUS_USERNAME',
+                        passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh """
-                            # Login to Docker Hub
-                            echo \$NEXUS_PASSWORD | docker login -u \$NEXUS_USERNAME --password-stdin ${NEXUS_REGISTRY_URL}
-
-                            # Tag image for Docker Hub
-                            docker tag ${DOCKER_IMAGE_NAME}:latest ${NEXUS_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:latest
-
-                            # Push to Docker Hub
-                            docker push ${NEXUS_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:latest
-
-                            # Logout
-                            docker logout ${NEXUS_REGISTRY_URL}
+                            echo \$NEXUS_PASSWORD | docker login -u \$NEXUS_USERNAME --password-stdin
+                            docker tag ${DOCKER_IMAGE_NAME}:latest \$NEXUS_USERNAME/${DOCKER_IMAGE_NAME}:latest
+                            docker push \$NEXUS_USERNAME/${DOCKER_IMAGE_NAME}:latest
+                            docker logout
                         """
                     }
-                    
-                    echo "Docker image pushed successfully to Docker Hub"
                 }
             }
         }
 
-        stage('Docker compose (MySQL & BackEnd app)') {
+        stage('startup') {
             steps {
                 script {
-                    echo "Starting Docker Compose with MySQL and Backend app..."
-                    
-                    // Login to Nexus Docker registry first
-                    withCredentials([usernamePassword(credentialsId: "${NEXUS_DOCKER_CREDENTIAL_ID}", 
-                                                    usernameVariable: 'NEXUS_USERNAME', 
-                                                    passwordVariable: 'NEXUS_PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: "${NEXUS_DOCKER_CREDENTIAL_ID}",
+                        usernameVariable: 'NEXUS_USERNAME',
+                        passwordVariable: 'NEXUS_PASSWORD')]) {
                         dir("${WORKSPACE}") {
                             sh """
-                                # Login to Nexus Docker registry
-                                echo \$NEXUS_PASSWORD | docker login -u \$NEXUS_USERNAME --password-stdin
-                                
-                                # Use the docker-compose.yml file from the checked out repository
                                 docker compose -f docker-compose.yml -p pi up mysql backend-app -d
                             """
                         }
                     }
-                    
-                    echo "Docker Compose started successfully with Nexus authentication"
                 }
             }
         }
     }
-    
-    // post {
-    //     always {
-    //         echo 'Pipeline execution completed'
-    //         // Clean workspace after build
-    //         cleanWs()
-    //     }
-    //     success {
-    //         echo 'Build successful! The application has been built, tested, and published to Nexus.'
-    //     }
-    //     failure {
-    //         echo 'Build failed! Please check the logs for more information.'
-    //     }
-    // }
+
+    post {
+        always {
+            emailext(
+                subject: "Build ${currentBuild.currentResult}: Job '${env.JOB_NAME} [#${env.BUILD_NUMBER}]'",
+                body: """<p>Job <b>${env.JOB_NAME}</b> finished with result: <b>${currentBuild.currentResult}</b></p>
+                        <p>Build URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>""",
+                to: 'gixovax595@kissgy.com',
+                mimeType: 'text/html'
+            )
+        }
+    }
 }
+
