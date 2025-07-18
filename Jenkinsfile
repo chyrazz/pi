@@ -131,8 +131,8 @@ pipeline {
                     echo "Pushing Docker image to Docker Hub..."
                     
                     withCredentials([usernamePassword(credentialsId: "${NEXUS_DOCKER_CREDENTIAL_ID}", 
-                                                    usernameVariable: 'admin', 
-                                                    passwordVariable: 'admin')]) {
+                                                    usernameVariable: 'NEXUS_USERNAME', 
+                                                    passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh """
                             # Login to Docker Hub
                             echo \$NEXUS_PASSWORD | docker login -u \$NEXUS_USERNAME --password-stdin
@@ -160,8 +160,8 @@ pipeline {
                     
                     // Login to Nexus Docker registry first
                     withCredentials([usernamePassword(credentialsId: "${NEXUS_DOCKER_CREDENTIAL_ID}", 
-                                                    usernameVariable: 'admin', 
-                                                    passwordVariable: 'admin')]) {
+                                                    usernameVariable: 'NEXUS_USERNAME', 
+                                                    passwordVariable: 'NEXUS_PASSWORD')]) {
                         dir("${WORKSPACE}") {
                             sh """
                                 # Login to Nexus Docker registry
