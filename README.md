@@ -71,14 +71,12 @@ Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
   - JDK 8  
   - Maven (version recommandée : 3.9.x)
 
-```
 
 ## **5️⃣ Personnaliser Docker Compose pour Backend App**
 
 - Ouvrir `docker-compose.yml`  
 - Remplacer toutes les occurrences de `chanzouti2001` par votre nom d'utilisateur Docker Hub
 
-```
 
 ## **6️⃣ Configuration de SonarQube**
 
@@ -88,7 +86,6 @@ Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
   - Aller dans **My Account** → **Security** → **Generate Tokens**
 - Ajouter ce token dans le `pom.xml` sous la propriété `sonar.login`
 
-```
 
 ## **7️⃣ Créer un Pipeline Jenkins**
 
@@ -97,7 +94,7 @@ Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
 - Utiliser le `Jenkinsfile` présent dans le repo  
 - Lancer un build (**Build Now**)
 
-```
+
 
 ## **8️⃣ Dashboards Grafana**
 
