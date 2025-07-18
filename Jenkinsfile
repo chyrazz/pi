@@ -83,14 +83,13 @@ pipeline {
         
         stage("SonarQube Analysis") {
             steps {
-                dir(SOURCE_CODE_PATH){
+                dir(SOURCE_CODE_PATH) {
                     withSonarQubeEnv('SonarQube') {
-                        sh 'mvn sonar:sonar'
+                       sh 'mvn sonar:sonar 
                     }
                 }
             }
         }
-
 
         stage('Deploy to Nexus') {
             steps {
