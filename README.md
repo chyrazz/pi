@@ -1,182 +1,107 @@
-# Project Setup Instructions
+# 🚀 Project Setup Guide
 
-**DO NOT CHANGE THE ROOT FOLDER NAME (`pi`)**
-
----
-
-## Default Credentials
-
-- **Grafana**
-  - **User:** `admin`
-  - **Password:** `admin@123`
-- **Nexus**
-  - **User:** `admin`
-  - **Password:** {refer to step}
+📌 **Important** : Ne change pas le nom du dossier racine (`pi`).
 
 ---
 
-## Requirements
+## ✅ Default Credentials
 
-- WSL or any Linux machine
-- Docker and Docker Compose available in the CLI
-
----
-
-## 1. Clone and Prepare Your Own Repository
-
-1. Clone this repository:
-   ```sh
-   git clone https://github.com/mmouhib/pi.git
-   ```
-2. Delete the `.git` folder:
-   ```sh
-   cd pi
-   rm -rf .git
-   ```
-3. Create a new repository on your own GitHub account.
-4. Initialize a new git repo and push:
-   ```sh
-   git init
-   git remote add origin https://github.com/{your-username}/{your-repo}.git
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git push -u origin main
-   ```
-5. Edit the `Jenkinsfile` and change the `git` URL to your new repository and branch (`main` by default).
+| Tool | Username | Password |
+|------|----------|----------|
+| Grafana | `admin` | `admin@123` |
+| Nexus | `admin` | *see step below* |
 
 ---
 
-## 2. Run the Project
+## ⚙️ Requirements
 
-```sh
+- Linux (WSL ou machine locale)
+- Docker & Docker Compose installés
+
+---
+
+## 1️⃣ Clone et Préparation du Projet
+
+```bash
+git clone https://github.com/mmouhib/pi.git
+cd pi
+rm -rf .git
+git init
+git remote add origin https://github.com/votre-username/votre-repo.git
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git push -u origin main
+
+
+## 2️⃣ Lancer le projet
+
 docker compose up jenkins sonarqube nexus grafana prometheus -d
-```
 
----
+## 3️⃣ Nexus Configuration
 
-## 3. Change Nexus Password
+Récupérer le mot de passe initial :
 
-1. Open a terminal and access the Nexus container:
-   ```sh
-   docker exec -it nexus bash
-   ```
-2. Display the initial admin password:
-   ```sh
-   cat /nexus-data/admin.password | grep ""
-   ```
-3. Open Nexus at [http://localhost:8081](http://localhost:8081) and log in:
-   - **User:** `admin`
-   - **Password:** `{the password you found}`
-4. Change the password to `admin` for easier access.
-   ![Show Nexus Password](docs/imgnexuspass.png)
+docker exec -it nexus bash
+cat /nexus-data/admin.password
+Accéder à http://localhost:8081 et remplacer le mot de passe initial par admin.
 
----
+## 4️⃣ Jenkins Configuration
+Accéder à http://localhost:8080
 
-## 4. Add Docker Hub Credentials in Jenkins
+Ajouter ces Credentials :
 
-- Go to: [Jenkins Credentials](http://localhost:8080/manage/credentials/store/system/domain/_/)
-- Generate a token from [Docker Hub Security Settings](https://hub.docker.com/settings/security) ⇒ *Personal access token*
-- Add credentials:
-  - **ID:** `nexus-docker-credentials`
-  - **Username:** `{your dockerhub username}`
-  - **Password:** `{the generated token}`
-- Example:  
-  ![Docker Hub Credentials](docs/img_1.png)
+Docker Hub : ID = nexus-docker-credentials
 
----
+SonarQube : ID = sonar-credentials
 
-## 5. Add SonarQube Credentials in Jenkins
+Configurer :
 
-- Go to: [Jenkins Credentials](http://localhost:8080/manage/credentials/store/system/domain/_/)
-- Use the following:
-  - **ID:** `sonar-credentials`
-  - **Username:** `admin`
-  - **Password:** `+ANJ#KKrtN4S$n_`
+JDK 8
 
----
+Maven (version recommandée : 3.9.x)
 
-## 6. Generate a SonarQube Token
+## 5️⃣ Docker Compose Backend App
+Dans docker-compose.yml, remplacez toutes les occurrences de mmouhib par votre nom d'utilisateur Docker Hub.
 
-- Log in to SonarQube (port 9000).
-- On first login, change the password:
-  - **Old password:** `admin`
-  - **New password:** `+ANJ#KKrtN4S$n_`
-- Visit: [SonarQube Account Security](http://localhost:9000/account/security)
-- Add your token to `pom.xml`:  
-  ![Sonar Token in pom.xml](docs/img_6.png)
+## 6️⃣ SonarQube Configuration
+Accéder à http://localhost:9000
 
----
+Changer le mot de passe admin → mot de passe sécurisé
 
-## 7. Add JDK Dependency in Jenkins
+Créer un token via My Account → Security
 
-- Go to: [Jenkins Global Tool Configuration](http://localhost:8080/manage/configureTools/)
-- Add JDK (e.g., JDK 8 and JDK 17)
-- ![Add JDK](docs/img_3.png)
-- **DO NOT FORGET TO SAVE**
+Ajouter ce token dans le pom.xml sous sonar.login
 
----
+##  7️⃣ Créer un Pipeline Jenkins
+Jenkins → Nouveau Item → Pipeline
 
-## 8. Add Maven Dependency in Jenkins
+Source : votre GitHub
 
-- Go to: [Jenkins Global Tool Configuration](http://localhost:8080/manage/configureTools/)
-- Add Maven
-- ![Add Maven](docs/img_4.png)
-- **DO NOT FORGET TO SAVE**
+Utiliser le Jenkinsfile de votre repo
 
----
+Lancer un build (Build Now)
 
-## 9. Update Docker Compose for Backend App
+## 8️⃣ Grafana Dashboards
+Après avoir lancé le pipeline :
 
-- In `docker-compose.yml`, change the image tag for the `backend-app` service:
-  - Replace `mmouhib` with your Docker Hub username.
-- ![Update Docker Compose](docs/img_9.png)
+Accéder à Grafana : http://localhost:3000
 
----
+Login : admin / admin@123
 
-## 10. Add SonarQube URL in Jenkins
+Importer les dashboards suivants dans Grafana :
 
-- Go to: [Jenkins Configure System](http://localhost:8080/manage/configure)
-- Add the SonarQube URL.
-- ![Add Sonar URL](docs/img_5.png)
-- **DO NOT FORGET TO SAVE**
+yaml
+Copy
+Edit
+9964
+4701
+11378
+16459
+1860
+8321
+17642
 
----
 
-## 11. Create a Jenkins Pipeline and Add the Jenkinsfile
 
-1. In Jenkins, click **"New Item"**.
-2. Enter a name for your pipeline and select **"Pipeline"**.
-3. Click **OK**.
-4. In the pipeline configuration, scroll to the **Pipeline** section.
-5. Copy the content of your `Jenkinsfile` and paste it into the script box.
-6. Save the pipeline.  
-   ![Jenkins Pipeline](docs/img22.png)
-
----
-
-## 12. Run the Jenkins Pipeline
-
-- Go to your pipeline in Jenkins.
-- Click **"Build Now"**.
-- Monitor the build process.  
-  ![Build Now](docs/img_1343.png)
-
----
-
-## 13. Import Grafana Dashboards
-
-After the pipeline succeeds:
-
-- Visit [Grafana Import](http://localhost:3000/dashboard/import)
-- Import the following dashboard IDs one by one:
-  ```
-  9964
-  4701
-  11378
-  16459
-  1860
-  8321
-  17642
-  ```
-- ![Grafana Dashboards](docs/img_7.png)
+💡 Il est prêt à être collé dans ton README.md. Si tu veux je peux aussi générer le badge final avec ton Docker Hub ou GitHub username.
