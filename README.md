@@ -33,13 +33,14 @@ git commit -m "Initial commit"
 git branch -M main
 git push -u origin main
 
+```
 
 ## **2️⃣ Lancer les Conteneurs**
 
 ```bash
 docker compose up -d jenkins sonarqube nexus grafana prometheus
 
-
+```
 
 ## **3️⃣ Configuration de Nexus**
 
@@ -58,7 +59,7 @@ Login : admin
 Mot de passe : (celui récupéré ci-dessus)
 
 Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
-
+```
 ## **4️⃣ Configuration de Jenkins**
 
 - Accéder à [http://localhost:8080](http://localhost:8080)
@@ -69,13 +70,13 @@ Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
   - JDK 8  
   - Maven (version recommandée : 3.9.x)
 
-
+```
 ## **5️⃣ Personnaliser Docker Compose pour Backend App**
 
 - Ouvrir `docker-compose.yml`  
 - Remplacer toutes les occurrences de `chanzouti2001` par votre nom d'utilisateur Docker Hub
 
-
+```
 ## **6️⃣ Configuration de SonarQube**
 
 - Accéder à [http://localhost:9000](http://localhost:9000)
@@ -84,6 +85,7 @@ Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
   - Aller dans **My Account** → **Security** → **Generate Tokens**
 - Ajouter ce token dans le `pom.xml` sous la propriété `sonar.login`
 
+```
 
 ## **7️⃣ Créer un Pipeline Jenkins**
 
@@ -92,6 +94,7 @@ Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
 - Utiliser le `Jenkinsfile` présent dans le repo  
 - Lancer un build (**Build Now**)
 
+```
 
 ## **8️⃣ Dashboards Grafana**
 
@@ -111,4 +114,4 @@ Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
 | 8321         | SonarQube quality gates             |
 | 17642        | System CPU and Memory monitoring    |
 
-
+```
