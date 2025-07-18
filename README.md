@@ -23,7 +23,7 @@
 ## 1️⃣ Clone et Préparation du Projet
 
 ```bash
-git clone https://github.com/mmouhib/pi.git
+git clone https://github.com/chyrazz/pi.git
 cd pi
 rm -rf .git
 git init
@@ -114,4 +114,4 @@ Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
 | 8321         | SonarQube quality gates             |
 | 17642        | System CPU and Memory monitoring    |
 
-```
+
