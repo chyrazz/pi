@@ -85,7 +85,7 @@ pipeline {
             steps {
                 dir(SOURCE_CODE_PATH) {
                     withSonarQubeEnv('SonarQube') {
-                       sh 'mvn sonar:sonar 
+                        sh 'mvn sonar:sonar 
                     }
                 }
             }
@@ -135,16 +135,16 @@ pipeline {
                                                     passwordVariable: 'NEXUS_PASSWORD')]) {
                         sh """
                             # Login to Docker Hub
-                            echo \$NEXUS_PASSWORD | docker login -u \$NEXUS_USERNAME --password-stdin
+                            echo \$NEXUS_PASSWORD | docker login -u \$NEXUS_USERNAME --password-stdin ${NEXUS_REGISTRY_URL}
 
                             # Tag image for Docker Hub
-                            docker tag ${DOCKER_IMAGE_NAME}:latest \$NEXUS_USERNAME/${DOCKER_IMAGE_NAME}:latest
+                            docker tag ${DOCKER_IMAGE_NAME}:latest ${NEXUS_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:latest
 
                             # Push to Docker Hub
-                            docker push \$NEXUS_USERNAME/${DOCKER_IMAGE_NAME}:latest
+                            docker push ${NEXUS_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:latest
 
                             # Logout
-                            docker logout
+                            docker logout ${NEXUS_REGISTRY_URL}
                         """
                     }
                     
@@ -165,7 +165,7 @@ pipeline {
                         dir("${WORKSPACE}") {
                             sh """
                                 # Login to Nexus Docker registry
-                                # echo \$NEXUS_PASSWORD | docker login -u \$NEXUS_USERNAME --password-stdin
+                                echo \$NEXUS_PASSWORD | docker login -u \$NEXUS_USERNAME --password-stdin
                                 
                                 # Use the docker-compose.yml file from the checked out repository
                                 docker compose -f docker-compose.yml -p pi up mysql backend-app -d
