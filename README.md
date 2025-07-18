@@ -59,6 +59,7 @@ Login : admin
 Mot de passe : (celui récupéré ci-dessus)
 
 Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
+
 ```
 ## **4️⃣ Configuration de Jenkins**
 
@@ -71,12 +72,14 @@ Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
   - Maven (version recommandée : 3.9.x)
 
 ```
+
 ## **5️⃣ Personnaliser Docker Compose pour Backend App**
 
 - Ouvrir `docker-compose.yml`  
 - Remplacer toutes les occurrences de `chanzouti2001` par votre nom d'utilisateur Docker Hub
 
 ```
+
 ## **6️⃣ Configuration de SonarQube**
 
 - Accéder à [http://localhost:9000](http://localhost:9000)
