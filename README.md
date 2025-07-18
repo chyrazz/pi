@@ -34,109 +34,81 @@ git branch -M main
 git push -u origin main
 
 
----
-
-## 2️⃣ Lancer le projet
+## **2️⃣ Lancer les Conteneurs**
 
 ```bash
+docker compose up -d jenkins sonarqube nexus grafana prometheus
 
 
-docker compose up jenkins sonarqube nexus grafana prometheus -d
 
----
+## **3️⃣ Configuration de Nexus**
 
-## 3️⃣ Nexus Configuration
+- Récupérer le mot de passe initial :
 
 ```bash
-
-
-Récupérer le mot de passe initial :
-
 docker exec -it nexus bash
 cat /nexus-data/admin.password
-Accéder à http://localhost:8081 et remplacer le mot de passe initial par admin.
 
----
+Aller sur http://localhost:8081
 
-## 4️⃣ Jenkins Configuration
+Se connecter avec :
 
-```bash
+Login : admin
 
-Accéder à http://localhost:8080
+Mot de passe : (celui récupéré ci-dessus)
 
-Ajouter ces Credentials :
+Modifier le mot de passe admin en admin pour simplifier l’accès (optionnel)
 
-Docker Hub : ID = nexus-docker-credentials
+## **4️⃣ Configuration de Jenkins**
 
-SonarQube : ID = sonar-credentials
-
-Configurer :
-
-JDK 8
-
-Maven (version recommandée : 3.9.x)
-
----
-
-## 5️⃣ Docker Compose Backend App
-
-```bash
-
-Dans docker-compose.yml, remplacez toutes les occurrences de mmouhib par votre nom d'utilisateur Docker Hub.
-
----
-
-## 6️⃣ SonarQube Configuration
-
-```bash
-
-Accéder à http://localhost:9000
-
-Changer le mot de passe admin → mot de passe sécurisé
-
-Créer un token via My Account → Security
-
-Ajouter ce token dans le pom.xml sous sonar.login
-
----
-
-##  7️⃣ Créer un Pipeline Jenkins
-
-```bash
-
-Jenkins → Nouveau Item → Pipeline
-
-Source : votre GitHub
-
-Utiliser le Jenkinsfile de votre repo
-
-Lancer un build (Build Now)
-
----
-
-## 8️⃣ Grafana Dashboards
-
-```bash
-
-Après avoir lancé le pipeline :
-
-Accéder à Grafana : http://localhost:3000
-
-Login : admin / admin@123
-
-Importer les dashboards suivants dans Grafana :
-
-yaml
-Copy
-Edit
-9964
-4701
-11378
-16459
-1860
-8321
-17642
+- Accéder à [http://localhost:8080](http://localhost:8080)
+- Ajouter ces Credentials :  
+  - Docker Hub : ID = `nexus-docker-credentials`  
+  - SonarQube : ID = `sonar-credentials`
+- Configurer :  
+  - JDK 8  
+  - Maven (version recommandée : 3.9.x)
 
 
+## **5️⃣ Personnaliser Docker Compose pour Backend App**
 
-💡 Il est prêt à être collé dans ton README.md. Si tu veux je peux aussi générer le badge final avec ton Docker Hub ou GitHub username.
+- Ouvrir `docker-compose.yml`  
+- Remplacer toutes les occurrences de `chanzouti2001` par votre nom d'utilisateur Docker Hub
+
+
+## **6️⃣ Configuration de SonarQube**
+
+- Accéder à [http://localhost:9000](http://localhost:9000)
+- Changer le mot de passe `admin` par un mot de passe sécurisé
+- Créer un token d’accès :  
+  - Aller dans **My Account** → **Security** → **Generate Tokens**
+- Ajouter ce token dans le `pom.xml` sous la propriété `sonar.login`
+
+
+## **7️⃣ Créer un Pipeline Jenkins**
+
+- Dans Jenkins, créer un **Nouveau Item** → **Pipeline**  
+- Configurer la source GitHub avec votre repo  
+- Utiliser le `Jenkinsfile` présent dans le repo  
+- Lancer un build (**Build Now**)
+
+
+## **8️⃣ Dashboards Grafana**
+
+- Après le premier build, accéder à Grafana : [http://localhost:3000](http://localhost:3000)  
+- Connexion :  
+  - Login : `admin`  
+  - Mot de passe : `admin@123`  
+- Importer les dashboards Grafana via leurs IDs (Menu Import > Dashboard IDs) :  
+
+| Dashboard ID | Description (exemple)                |
+|--------------|------------------------------------|
+| 9964         | Kubernetes cluster monitoring       |
+| 4701         | Jenkins build statistics            |
+| 11378        | Docker container metrics            |
+| 16459        | Prometheus server overview          |
+| 1860         | Node Exporter server metrics        |
+| 8321         | SonarQube quality gates             |
+| 17642        | System CPU and Memory monitoring    |
+
+
