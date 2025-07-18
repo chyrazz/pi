@@ -43,21 +43,17 @@ pipeline {
         
         stage('Build') {
             steps {
-                dir(SOURCE_CODE_PATH) {
                     sh 'mvn clean package -DskipTests'
-                }
             }
         }
         
         stage('Unit Tests') {
             steps {
-                dir(SOURCE_CODE_PATH) {
                     sh 'mvn test'
-                }
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: "${SOURCE_CODE_PATH}/target/surefire-reports/*.xml"
+                    junit allowEmptyResults: true, testResults: "/target/surefire-reports/*.xml"
                 }
             }
         }
@@ -85,7 +81,7 @@ pipeline {
             steps {
                 dir(SOURCE_CODE_PATH) {
                     withSonarQubeEnv('SonarQube') {
-                        sh 'mvn sonar:sonar 
+                        sh 'mvn sonar:sonar' 
                     }
                 }
             }
